@@ -58,11 +58,11 @@ void ABPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!SphereComponent->IsSimulatingPhysics())
-		bIsOnGround = false;
-	
-	if (bIsOnGround)
-		JumpCount = 0;
+	// if (!SphereComponent->IsSimulatingPhysics())
+	// 	bIsOnGround = false;
+	//
+	// if (bIsOnGround)
+	// 	JumpCount = 0;
 }
 
 // Called to bind functionality to input
@@ -125,7 +125,7 @@ void ABPBall::OnSphereHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 {
 	if (FMath::Abs(Hit.Normal.Z) > 0.7)
 	{
-		// JumpCount = 0;
+		JumpCount = 0;
 		bIsOnGround = true;
 	}
 }
