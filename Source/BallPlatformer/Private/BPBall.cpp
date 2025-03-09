@@ -26,7 +26,7 @@ ABPBall::ABPBall()
 	
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComponent->SetupAttachment(RootComponent);
-	SpringArmComponent->TargetArmLength = 500.f;  // Distance de la caméra
+	SpringArmComponent->TargetArmLength = 800.f;  // Distance de la caméra
 	SpringArmComponent->bUsePawnControlRotation = true;  // Rotation contrôlée par le Pawn
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -58,11 +58,8 @@ void ABPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// if (!SphereComponent->IsSimulatingPhysics())
-	// 	bIsOnGround = false;
-	//
-	// if (bIsOnGround)
-	// 	JumpCount = 0;
+	FVector GravityForceVector = CurrentGravityDirection * GravityStrength * SphereComponent->GetMass();
+	SphereComponent->AddForce(GravityForceVector);
 }
 
 // Called to bind functionality to input
@@ -112,7 +109,6 @@ void ABPBall::JumpFunc(const FInputActionValue& Value)
 	}
 }
 
-
 void ABPBall::LookFunc(const FInputActionValue& Value)
 {
 	const FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -128,4 +124,10 @@ void ABPBall::OnSphereHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		JumpCount = 0;
 		bIsOnGround = true;
 	}
+}
+
+void ABPBall::SetGravityDirection(const FVector& NewGravityDirection, const float NewGravityStrength)
+{
+	CurrentGravityDirection = NewGravityDirection.GetSafeNormal();
+	GravityStrength = NewGravityStrength;
 }

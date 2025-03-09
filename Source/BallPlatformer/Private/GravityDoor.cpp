@@ -3,6 +3,8 @@
 
 #include "GravityDoor.h"
 
+#include "BPBall.h"
+
 
 // Sets default values
 AGravityDoor::AGravityDoor()
@@ -64,57 +66,47 @@ void AGravityDoor::OnConstruction(const FTransform& Transform)
 void AGravityDoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (bIsGravityOn)
-	{
-		LaunchGravity();
-	}
 }
 
 FVector AGravityDoor::GetGravityDirectionVector() const
 {
-	switch (GravityDirection)
-	{
-		case Top:
-			return FVector(0, 0, 1); // Gravité vers le haut
-		case Bottom:
-			return FVector(0, 0, -1); // Gravité vers le bas
-		case Left:
-			return FVector(-1, 0, 0); // Gravité vers la gauche
-		case Right:
-			return FVector(1, 0, 0); // Gravité vers la droite
-		case Front:
-			return FVector(0, 1, 0); // Gravité vers l'avant
-		case Back:
-			return FVector(0, -1, 0); // Gravité vers l'arrière
-		default:
-			return FVector(0, 0, -1); // Par défaut, la gravité pointe vers le bas
-	}
+	FVector LocalDirection;
+    
+    switch (GravityDirection)
+    {
+        case Top:
+            LocalDirection = FVector(0, 0, 1);
+            break;
+        case Bottom:
+            LocalDirection = FVector(0, 0, -1);
+            break;
+        case Left:
+            LocalDirection = FVector(0, -1, 0);
+            break;
+        case Right:
+            LocalDirection = FVector(0, 1, 0);
+            break;
+        case Front:
+            LocalDirection = FVector(1, 0, 0);
+            break;
+        case Back:
+            LocalDirection = FVector(-1, 0, 0);
+            break;
+        default:
+            LocalDirection = FVector(0, 0, -1);
+            break;
+    }
+
+    // Convertir la direction locale en direction du monde en utilisant l'orientation de la porte
+    return GetActorTransform().TransformVectorNoScale(LocalDirection).GetSafeNormal();
 }
 
 void AGravityDoor::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor)
-	{
-		AffectedComponent = Cast<UPrimitiveComponent>(OtherComp);
-		if (AffectedComponent && AffectedComponent->IsSimulatingPhysics())
-		{
-			bIsGravityOn = true;
-		}
-	}
-}
-
-void AGravityDoor::LaunchGravity()
-{
-	if (GravityDirection == Bottom)
-	{
-		bIsGravityOn = false;
-		return;
-	}
+	ABPBall* Ball = Cast<ABPBall>(OtherActor);
 	
-	FVector GravityDirectionVector = GetGravityDirectionVector();
-	FVector NewVelocity = GravityDirectionVector * GravityForce;
-
-	AffectedComponent->SetPhysicsLinearVelocity(NewVelocity, false);
+	if (Ball)
+	{
+		Ball->SetGravityDirection(GetGravityDirectionVector(), GravityForce);
+	}
 }
-

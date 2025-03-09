@@ -47,11 +47,7 @@ public:
 	TEnumAsByte<EGravityDirection> GravityDirection = Top;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gravity")
-	float GravityForce = 100.f;
-
-	bool bIsGravityOn = false;
-
-	UPrimitiveComponent* AffectedComponent;
+	float GravityForce = 1470.f;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -61,7 +57,4 @@ public:
 
 	UFUNCTION()
 	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	void LaunchGravity();
 };

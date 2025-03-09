@@ -72,6 +72,10 @@ public:
 
 	bool bIsOnGround = false;
 
+	FVector CurrentGravityDirection = FVector(0, 0, -1);
+	
+	float GravityStrength = 980.f;
+
 	UFUNCTION()
 	void MoveFunc(const FInputActionValue& Value);
 
@@ -83,4 +87,7 @@ public:
 
 	UFUNCTION()
 	void OnSphereHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void SetGravityDirection(const FVector& NewGravityDirection, float NewGravityStrength);
 };
