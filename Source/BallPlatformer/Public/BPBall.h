@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "InputMappingContext.h"
+#include "Camera/CameraComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "BPBall.generated.h"
 
 UCLASS()
@@ -23,6 +25,12 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USphereComponent* SphereComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USpringArmComponent* SpringArmComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* CameraComponent;
 
 protected:
 	// Called when the game starts or when spawned
@@ -44,15 +52,35 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	UInputAction* JumpAction;
 
-	UPROPERTY(EditAnywhere, Category="Movement")
-	float MoveForce = 400.f;
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* LookAction;
 
 	UPROPERTY(EditAnywhere, Category="Movement")
-	float JumpImpulse = 60.f;
+	float MoveForce = 600.f;
+
+	UPROPERTY(EditAnywhere, Category="Movement")
+	float JumpImpulse = 800.f;
+
+	UPROPERTY(VisibleAnywhere, Category="Movement")
+	int JumpCount = 0;
+	
+	UPROPERTY(EditAnywhere, Category="Movement")
+	int MaxJumps = 2;
+	
+	// UPROPERTY(EditAnywhere, Category="Movement")
+	// bool bCumulateSpeed = false;
+
+	bool bIsOnGround = false;
 
 	UFUNCTION()
 	void MoveFunc(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void JumpFunc(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void LookFunc(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void OnSphereHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 };

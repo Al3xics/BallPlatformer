@@ -16,15 +16,29 @@ ABPBall::ABPBall()
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Collision"));
 	RootComponent = SphereComponent;
 	SphereComponent->SetSimulatePhysics(true);
+	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	SphereComponent->SetNotifyRigidBodyCollision(true);
+	SphereComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	SphereComponent->SetMassScale(NAME_None, 1.0f);
 
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMeshComponent->SetupAttachment(RootComponent);
+	
+	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArmComponent->SetupAttachment(RootComponent);
+	SpringArmComponent->TargetArmLength = 500.f;  // Distance de la caméra
+	SpringArmComponent->bUsePawnControlRotation = true;  // Rotation contrôlée par le Pawn
+
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	CameraComponent->SetupAttachment(SpringArmComponent);
 }
 
 // Called when the game starts or when spawned
 void ABPBall::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	SphereComponent->OnComponentHit.AddDynamic(this, &ABPBall::OnSphereHit);
 
 	// Add Mapping Contexte
     if (const auto PlayerController = Cast<APlayerController>(Controller))
@@ -43,6 +57,12 @@ void ABPBall::BeginPlay()
 void ABPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!SphereComponent->IsSimulatingPhysics())
+		bIsOnGround = false;
+	
+	if (bIsOnGround)
+		JumpCount = 0;
 }
 
 // Called to bind functionality to input
@@ -53,19 +73,59 @@ void ABPBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABPBall::MoveFunc);
 	EnhancedInput->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ABPBall::JumpFunc);
+	EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABPBall::LookFunc);
 }
 
 void ABPBall::MoveFunc(const FInputActionValue& Value)
 {
 	const FVector MovementVector = Value.Get<FVector>();
-	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Cyan, TEXT("Move Action"));
-	SphereComponent->AddForce(MoveForce * MovementVector);
+
+	if (const APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		const FRotator ControlRotation = PlayerController->GetControlRotation();
+        
+		FVector ForwardDirection = FRotationMatrix(ControlRotation).GetScaledAxis(EAxis::X);
+		FVector RightDirection = FRotationMatrix(ControlRotation).GetScaledAxis(EAxis::Y);
+
+		ForwardDirection.Z = 0.0f;
+		RightDirection.Z = 0.0f;
+
+		ForwardDirection.Normalize();
+		RightDirection.Normalize();
+
+		const FVector Movement = (ForwardDirection * MovementVector.X + RightDirection * MovementVector.Y) * MoveForce;
+
+		SphereComponent->AddForce(Movement);
+		// SphereComponent->SetPhysicsLinearVelocity(Movement, bCumulateSpeed);
+	}
 }
 
 void ABPBall::JumpFunc(const FInputActionValue& Value)
 {
 	const bool JumpValue = Value.Get<bool>();
-	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Cyan, TEXT("Jump Action"));
-	SphereComponent->AddImpulse(JumpImpulse * GetActorUpVector());
+
+	if (bIsOnGround || JumpCount < MaxJumps) 
+	{
+		SphereComponent->AddImpulse(JumpImpulse * FVector::UpVector);
+		bIsOnGround = false;
+		JumpCount++;
+	}
 }
 
+
+void ABPBall::LookFunc(const FInputActionValue& Value)
+{
+	const FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+	AddControllerYawInput(LookAxisVector.X);  // Rotation horizontale
+	AddControllerPitchInput(-LookAxisVector.Y); // Rotation verticale (inverse pour correspondre aux contrôles classiques)
+}
+
+void ABPBall::OnSphereHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (FMath::Abs(Hit.Normal.Z) > 0.7)
+	{
+		// JumpCount = 0;
+		bIsOnGround = true;
+	}
+}
