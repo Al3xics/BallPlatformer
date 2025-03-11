@@ -19,7 +19,6 @@ public:
 	AMovingPlatform();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:
@@ -33,16 +32,13 @@ public:
 	UStaticMeshComponent* PlatformMesh;
 
 	UPROPERTY(EditAnywhere, Category = "Platform")
-	UBoxComponent* BoxCollision;
-
-	UPROPERTY(EditAnywhere, Category = "Platform")
 	UCurveFloat* MovementCurve;
 
 	UPROPERTY(EditAnywhere, Category = "Platform")
 	bool bRotateObjectAlongSpline = true;
 
 	UPROPERTY(EditAnywhere, Category = "Platform", meta = (ToolTip = "Multiplied by the velocity of the ball at the moment of impact."))
-	float BounceFactor = 1.5f;
+	float BounceFactor = 1.2f;
 
 	FRotator InitialRotationOffset;
 	
@@ -59,7 +55,8 @@ public:
 
 	UFUNCTION()
 	void OnTimelineFinished();
-
+	
 	UFUNCTION()
 	void BoxHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	// Called when the game starts or when spawned
 };

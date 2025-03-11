@@ -12,12 +12,8 @@ AMovingPlatform::AMovingPlatform()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
-	RootComponent = BoxCollision;
-	BoxCollision->SetBoxExtent(FVector(15, 200, 200));
-	
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComponent"));
-	SplineComponent->SetupAttachment(RootComponent);
+	RootComponent = SplineComponent;
 
 	PlatformMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlatformMesh"));
 	PlatformMesh->SetupAttachment(RootComponent);
@@ -27,6 +23,8 @@ AMovingPlatform::AMovingPlatform()
 		PlatformMesh->SetStaticMesh(MeshAsset.Object);
 		PlatformMesh->SetWorldScale3D(FVector(4.f, 4.f, 0.25f));
 		PlatformMesh->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+		PlatformMesh->SetNotifyRigidBodyCollision(true);
+		PlatformMesh->SetCollisionProfileName(TEXT("BlockAll"));
 	}
 }
 
@@ -35,7 +33,7 @@ void AMovingPlatform::BeginPlay()
 {
 	Super::BeginPlay();
 
-	BoxCollision->OnComponentHit.AddDynamic(this, &AMovingPlatform::BoxHit);
+	PlatformMesh->OnComponentHit.AddDynamic(this, &AMovingPlatform::BoxHit);
 
 	SplineLength = SplineComponent->GetSplineLength();
 	bIsLooping = SplineComponent->IsClosedLoop();
@@ -103,12 +101,10 @@ void AMovingPlatform::BoxHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 {
 	if (ABPBall* Ball = Cast<ABPBall>(OtherActor))
 	{
-		// BoxCollision->AddImpulse(Ball->GetVelocity() * -Hit.Normal * ReboundForce, NAME_None, false);
-
-		FVector BallVelocity = Ball->GetVelocity();
-		float DotProduct = FVector::DotProduct(BallVelocity, Hit.Normal);
-		FVector ReflectionDirection = BallVelocity - 2 * DotProduct * Hit.Normal;
+		FVector BallVelocity = Ball->SphereComponent->GetPhysicsLinearVelocity();
+		FVector ReflectionDirection = BallVelocity.MirrorByVector(Hit.Normal);
 		FVector Impulse = ReflectionDirection * BounceFactor * Ball->SphereComponent->GetMass();
+		
 		Ball->SphereComponent->AddImpulse(Impulse, NAME_None, true);
 	}
 }
