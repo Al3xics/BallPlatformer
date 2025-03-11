@@ -108,4 +108,4 @@ void AMovingPlatform::BoxHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 		Ball->SphereComponent->AddImpulse(Impulse, NAME_None, true);
 	}
 }
-
+ 
