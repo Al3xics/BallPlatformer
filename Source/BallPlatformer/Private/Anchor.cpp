@@ -15,7 +15,9 @@ AAnchor::AAnchor()
 void AAnchor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	LinearBreakThreshold = GameMode->LinearBreakThresholdAnchor;
+	LinearBreakable = GameMode->bLinearBreakableAnchor;
 }
 
 // Called every frame

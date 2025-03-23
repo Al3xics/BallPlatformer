@@ -3,8 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BPGameMode.h"
+#include "Components/BoxComponent.h"
 #include "GameFramework/Actor.h"
+#include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "Beam.generated.h"
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FConstraintBroken, UPhysicsConstraintComponent*);
 
 UCLASS()
 class BALLPLATFORMER_API ABeam : public AActor
@@ -22,4 +27,30 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(VisibleAnywhere)
+	UBoxComponent* BoxCollision;
+	
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* MeshBeam;
+
+	UPROPERTY()
+	TArray<UPhysicsConstraintComponent*> PhysicsConstraints;
+
+	UPROPERTY()
+	float CurrentLoad = 0.f;
+
+	UPROPERTY()
+	ABPGameMode* GameMode;
+
+	FConstraintBroken ConstraintBrokenDelegate;
+	
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	void CheckForBreakage();
 };

@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Beam.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "Connector.generated.h"
 
@@ -22,4 +24,39 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	virtual bool ShouldTickIfViewportsOnly() const override;
+
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* SphereConnector;
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* MeshConnector;
+
+	UPROPERTY()
+	TArray<UPhysicsConstraintComponent*> PhysicsConstraints;
+
+	UPROPERTY()
+	ABPGameMode* GameMode;
+
+	UPROPERTY(EditAnywhere, Category="Connector", AdvancedDisplay)
+	bool UseEditorTick = true;
+	
+	UPROPERTY()
+	float LinearBreakThreshold;
+
+	UPROPERTY()
+	bool LinearBreakable;
+
+	UFUNCTION()
+	void CheckOverlappingActor();
+
+	UFUNCTION()
+	void SetUpPhysicsConstraint(ABeam* Beam);
+
+	UFUNCTION()
+	bool HasConstraintWithBeam(ABeam* Beam) const;
+
+	UFUNCTION()
+	void HandleConstraintBroken(UPhysicsConstraintComponent* Constraint);
 };

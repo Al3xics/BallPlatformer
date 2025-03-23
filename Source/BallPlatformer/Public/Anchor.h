@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Connector.h"
 #include "GameFramework/Actor.h"
 #include "Anchor.generated.h"
 
 UCLASS()
-class BALLPLATFORMER_API AAnchor : public AActor
+class BALLPLATFORMER_API AAnchor : public AConnector
 {
 	GENERATED_BODY()
 
