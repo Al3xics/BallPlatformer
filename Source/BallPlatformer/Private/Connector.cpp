@@ -42,25 +42,9 @@ void AConnector::BeginPlay()
 // Called every frame
 void AConnector::Tick(float DeltaTime)
 {
-#if WITH_EDITOR
-	if (GetWorld() != nullptr && GetWorld()->WorldType == EWorldType::Editor)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, "Editor Tick Enabled : for each connector and anchor, find 'Use Editor Tick' and disable it");
-		CheckOverlappingActor();
-	}
-#endif
 	Super::Tick(DeltaTime);
 
 	CheckOverlappingActor();
-}
-
-bool AConnector::ShouldTickIfViewportsOnly() const
-{
-	if (GetWorld() != nullptr && GetWorld()->WorldType == EWorldType::Editor && UseEditorTick)
-	{
-		return true;
-	}
-	return false;
 }
 
 void AConnector::CheckOverlappingActor()
@@ -73,6 +57,9 @@ void AConnector::CheckOverlappingActor()
 		for (AActor* Actor : OverlappingActors)
 		{
 			ABeam* Beam = Cast<ABeam>(Actor);
+			
+			GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Yellow, FString::Printf(TEXT("Size : %i"), PhysicsConstraints.Num()));
+			
 			if (Beam && !HasConstraintWithBeam(Beam))
 			{
 				SetUpPhysicsConstraint(Beam);
@@ -109,11 +96,22 @@ bool AConnector::HasConstraintWithBeam(ABeam* Beam) const
 {
 	if (!Beam) return false;
 	
-	for (const UPhysicsConstraintComponent* Constraint : PhysicsConstraints)
+	for (UPhysicsConstraintComponent* Constraint : PhysicsConstraints)
 	{
-		if (Constraint && Constraint->ConstraintActor2 == Beam)
+		if (Constraint)
 		{
-			return true;
+			UPrimitiveComponent* Comp1;
+			UPrimitiveComponent* Comp2;
+			FName Bone1, Bone2;
+
+			// Get the components associated with this constraint
+			Constraint->GetConstrainedComponents(Comp1, Bone1, Comp2, Bone2);
+
+			// Compare components associated with the Beam actor
+			if ((Comp1 == Beam->MeshBeam) || (Comp2 == Beam->MeshBeam))
+			{
+				return true;
+			}
 		}
 	}
 	return false;

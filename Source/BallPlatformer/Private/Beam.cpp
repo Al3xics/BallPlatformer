@@ -16,8 +16,8 @@ ABeam::ABeam()
 	RootComponent = BoxCollision;
 	BoxCollision->SetBoxExtent(FVector(800, 100, 100));
 	BoxCollision->SetGenerateOverlapEvents(true);
-	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &ABeam::OnOverlapBegin);
-	BoxCollision->OnComponentEndOverlap.AddDynamic(this, &ABeam::OnOverlapEnd);
+	// BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &ABeam::OnOverlapBegin);
+	// BoxCollision->OnComponentEndOverlap.AddDynamic(this, &ABeam::OnOverlapEnd);
 
 	MeshBeam = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Beam"));
 	MeshBeam->SetupAttachment(RootComponent);
@@ -44,12 +44,13 @@ void ABeam::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	CheckForBreakage();
+	// CheckForBreakage();
 }
 
 void ABeam::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || !OtherComp) return;
+	if (Cast<AConnector>(OtherActor) || Cast<AConnector>(OtherActor)) return;
 
 	if (OtherComp && OtherComp->IsSimulatingPhysics())
 	{
@@ -65,6 +66,7 @@ void ABeam::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 void ABeam::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (!OtherActor || !OtherComp) return;
+	if (Cast<AConnector>(OtherActor) || Cast<AConnector>(OtherActor)) return;
 
 	if (OtherComp && OtherComp->IsSimulatingPhysics())
 	{

@@ -25,8 +25,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual bool ShouldTickIfViewportsOnly() const override;
-
 	UPROPERTY(VisibleAnywhere)
 	USphereComponent* SphereConnector;
 
@@ -38,9 +36,6 @@ public:
 
 	UPROPERTY()
 	ABPGameMode* GameMode;
-
-	UPROPERTY(EditAnywhere, Category="Connector", AdvancedDisplay)
-	bool UseEditorTick = true;
 	
 	UPROPERTY()
 	float LinearBreakThreshold;
