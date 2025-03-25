@@ -5,6 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
@@ -51,6 +52,13 @@ void ABPBall::BeginPlay()
      		}
      	}
     }
+}
+
+void ABPBall::Destroyed()
+{
+	Super::Destroyed();
+
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*GetWorld()->GetMapName()));
 }
 
 // Called every frame

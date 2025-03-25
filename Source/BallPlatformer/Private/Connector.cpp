@@ -57,10 +57,9 @@ void AConnector::CheckOverlappingActor()
 		for (AActor* Actor : OverlappingActors)
 		{
 			ABeam* Beam = Cast<ABeam>(Actor);
+			if (!Beam || Beam->bIsBroken) continue;
 			
-			GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Yellow, FString::Printf(TEXT("Size : %i"), PhysicsConstraints.Num()));
-			
-			if (Beam && !HasConstraintWithBeam(Beam))
+			if (!HasConstraintWithBeam(Beam))
 			{
 				SetUpPhysicsConstraint(Beam);
 			}
@@ -89,7 +88,6 @@ void AConnector::SetUpPhysicsConstraint(ABeam* Beam)
 
 	PhysicsConstraints.Add(NewConstraint);
 	Beam->PhysicsConstraints.Add(NewConstraint);
-	Beam->ConstraintBrokenDelegate.AddUFunction(this, FName("HandleConstraintBroken"));
 }
 
 bool AConnector::HasConstraintWithBeam(ABeam* Beam) const

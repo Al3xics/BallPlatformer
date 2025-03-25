@@ -9,8 +9,6 @@
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "Beam.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FConstraintBroken, UPhysicsConstraintComponent*);
-
 UCLASS()
 class BALLPLATFORMER_API ABeam : public AActor
 {
@@ -43,7 +41,8 @@ public:
 	UPROPERTY()
 	ABPGameMode* GameMode;
 
-	FConstraintBroken ConstraintBrokenDelegate;
+	UPROPERTY()
+	bool bIsBroken = false;
 	
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

@@ -16,8 +16,8 @@ ABeam::ABeam()
 	RootComponent = BoxCollision;
 	BoxCollision->SetBoxExtent(FVector(800, 100, 100));
 	BoxCollision->SetGenerateOverlapEvents(true);
-	// BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &ABeam::OnOverlapBegin);
-	// BoxCollision->OnComponentEndOverlap.AddDynamic(this, &ABeam::OnOverlapEnd);
+	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &ABeam::OnOverlapBegin);
+	BoxCollision->OnComponentEndOverlap.AddDynamic(this, &ABeam::OnOverlapEnd);
 
 	MeshBeam = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Beam"));
 	MeshBeam->SetupAttachment(RootComponent);
@@ -44,7 +44,7 @@ void ABeam::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// CheckForBreakage();
+	CheckForBreakage();
 }
 
 void ABeam::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -81,32 +81,45 @@ void ABeam::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* Other
 
 void ABeam::CheckForBreakage()
 {
+	if (bIsBroken) return;
+	
 	if (CurrentLoad > GameMode->MaxLoadPerBeam)
 	{
+		bIsBroken = true;
+		
+		// Temporary list to store constraints to be deleted
+		TArray<UPhysicsConstraintComponent*> ConstraintsToRemove;
+		
 		// Break all constraints related to this beam
 		for (UPhysicsConstraintComponent* Constraint : PhysicsConstraints)
 		{
 			if (Constraint)
 			{
-				// Checks the actors attached to both ends of the constraint
-				const AActor* Actor1 = Constraint->ConstraintActor1;
-				const AActor* Actor2 = Constraint->ConstraintActor2;
+				UPrimitiveComponent* Comp1;
+				UPrimitiveComponent* Comp2;
+				FName Bone1, Bone2;
+
+				Constraint->GetConstrainedComponents(Comp1, Bone1, Comp2, Bone2);
 
 				// If one end is an anchor, do not break this constraint
-				if (Actor1 && Actor1->IsA(AAnchor::StaticClass()) ||
-					Actor2 && Actor2->IsA(AAnchor::StaticClass()))
+				if (Comp1->GetOwner() && Comp1->GetOwner()->IsA(AAnchor::StaticClass()) ||
+					Comp2->GetOwner() && Comp2->GetOwner()->IsA(AAnchor::StaticClass()))
 				{
 					continue;
 				}
 
-				// It's not an anchor, so break the constraint and destroy it
-				PhysicsConstraints.Remove(Constraint);
-				ConstraintBrokenDelegate.Broadcast(Constraint);
+				ConstraintsToRemove.Add(Constraint);
 			}
 		}
 
-		// Destroy beam after X seconds
-		SetLifeSpan(GameMode->DestroyBeamAfterXSeconds);
+		for (UPhysicsConstraintComponent* Constraint : ConstraintsToRemove)
+		{
+			PhysicsConstraints.Remove(Constraint);
+			BoxCollision->SetGenerateOverlapEvents(false);
+				
+			if (AConnector* Connector = Cast<AConnector>(Constraint->GetOwner()))
+				Connector->HandleConstraintBroken(Constraint);
+		}
 	}
 }
 

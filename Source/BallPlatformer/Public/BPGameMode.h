@@ -17,9 +17,6 @@ public:
 	float MaxLoadPerBeam = 500.f;
 	
 	UPROPERTY(EditAnywhere, Category="BP Game Mode")
-	float DestroyBeamAfterXSeconds = 5.f;
-	
-	UPROPERTY(EditAnywhere, Category="BP Game Mode")
 	bool bLinearBreakableAnchor = false;
 	
 	UPROPERTY(EditAnywhere, Category="BP Game Mode", meta=(EditCondition = "bLinearBreakableAnchor"))
