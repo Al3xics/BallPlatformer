@@ -14,7 +14,11 @@ AConnector::AConnector()
 	SphereConnector = CreateDefaultSubobject<USphereComponent>(TEXT("SphereConnector"));
 	RootComponent = SphereConnector;
 	SphereConnector->SetSphereRadius(256);
+	SphereConnector->SetSimulatePhysics(true);
 	SphereConnector->SetGenerateOverlapEvents(true);
+	SphereConnector->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	SphereConnector->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	SphereConnector->SetCollisionResponseToAllChannels(ECR_Overlap);
 
 	MeshConnector = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshConnector"));
 	MeshConnector->SetupAttachment(RootComponent);
@@ -24,6 +28,7 @@ AConnector::AConnector()
 		MeshConnector->SetStaticMesh(MeshAsset.Object);
 	}
 	MeshConnector->SetWorldScale3D(FVector(4, 4, 4));
+	SphereConnector->SetSimulatePhysics(false);
 	MeshConnector->SetGenerateOverlapEvents(false);
 	MeshConnector->CanCharacterStepUpOn = ECB_No;
 	MeshConnector->SetCollisionProfileName(TEXT("NoCollision"));

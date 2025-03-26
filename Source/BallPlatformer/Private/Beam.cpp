@@ -15,9 +15,11 @@ ABeam::ABeam()
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
 	RootComponent = BoxCollision;
 	BoxCollision->SetBoxExtent(FVector(800, 100, 100));
+	BoxCollision->SetSimulatePhysics(true);
 	BoxCollision->SetGenerateOverlapEvents(true);
-	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &ABeam::OnOverlapBegin);
-	BoxCollision->OnComponentEndOverlap.AddDynamic(this, &ABeam::OnOverlapEnd);
+	BoxCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	BoxCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	BoxCollision->SetCollisionResponseToAllChannels(ECR_Overlap);
 
 	MeshBeam = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Beam"));
 	MeshBeam->SetupAttachment(RootComponent);
@@ -28,7 +30,8 @@ ABeam::ABeam()
 		MeshBeam->SetStaticMesh(MeshAsset.Object);
 	}
 	MeshBeam->SetWorldScale3D(FVector(16, 2, 2));
-	MeshBeam->SetSimulatePhysics(true);
+	MeshBeam->SetSimulatePhysics(false);
+	MeshBeam->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 }
 
 // Called when the game starts or when spawned
@@ -37,6 +40,9 @@ void ABeam::BeginPlay()
 	Super::BeginPlay();
 
 	GameMode = Cast<ABPGameMode>(GetWorld()->GetAuthGameMode());
+	
+	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &ABeam::OnOverlapBegin);
+	BoxCollision->OnComponentEndOverlap.AddDynamic(this, &ABeam::OnOverlapEnd);
 }
 
 // Called every frame
@@ -50,7 +56,7 @@ void ABeam::Tick(float DeltaTime)
 void ABeam::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || !OtherComp) return;
-	if (Cast<AConnector>(OtherActor) || Cast<AConnector>(OtherActor)) return;
+	if (Cast<AConnector>(OtherActor) || Cast<ABeam>(OtherActor)) return;
 
 	if (OtherComp && OtherComp->IsSimulatingPhysics())
 	{
@@ -66,7 +72,7 @@ void ABeam::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 void ABeam::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (!OtherActor || !OtherComp) return;
-	if (Cast<AConnector>(OtherActor) || Cast<AConnector>(OtherActor)) return;
+	if (Cast<AConnector>(OtherActor) || Cast<ABeam>(OtherActor)) return;
 
 	if (OtherComp && OtherComp->IsSimulatingPhysics())
 	{
