@@ -125,7 +125,18 @@ void ABeam::CheckForBreakage()
 				
 			if (AConnector* Connector = Cast<AConnector>(Constraint->GetOwner()))
 				Connector->HandleConstraintBroken(Constraint);
+
+			// If Beam is directly in contact with another Beam, it will not fall because it's a Physics Actor, and the other Beam prevent him from falling down
+			MeshBeam->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandleReEnableCollision, this, &ABeam::ReEnableCollision, 0.7f, false);
+
+
 		}
 	}
+}
+
+void ABeam::ReEnableCollision() const
+{
+	MeshBeam->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
