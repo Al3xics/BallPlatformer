@@ -65,7 +65,7 @@ void ABeam::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 		const float Speed = Velocity.Size();
 		const float KineticEnergy = 0.5f * Mass * Speed * Speed;
 
-		CurrentLoad += Mass * KineticEnergy * 0.01f;
+		CurrentLoad += Mass * KineticEnergy * 0.0000001f;
 	}
 }
 
